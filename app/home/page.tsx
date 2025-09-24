@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import Draggable from "react-draggable";
+import { motion } from "framer-motion";
 
 interface textElement {
   id: string;
@@ -11,6 +13,38 @@ interface textElement {
   y: number;
   fontSize: number;
   color: string;
+}
+
+function DraggableText({
+  text,
+  onClick,
+  onDoubleClick,
+  onDrag,
+}: {
+  text: textElement;
+  onClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  onDoubleClick: () => void;
+  onDrag: (textId: string, x: number, y: number) => void;
+}) {
+  const nodeRef = useRef<HTMLDivElement>(null);
+  return (
+    <Draggable
+      nodeRef={nodeRef}
+      position={{ x: text.x, y: text.y }}
+      onDrag={(e, data) => onDrag(text.id, data.x, data.y)}
+      onStop={(e, data) => onDrag(text.id, data.x, data.y)}
+    >
+      <div
+        ref={nodeRef}
+        className="cursor-move select-none"
+        style={{ fontSize: text.fontSize + "px", color: text.color }}
+        onClick={onClick}
+        onDoubleClick={onDoubleClick}
+      >
+        {text.content}
+      </div>
+    </Draggable>
+  );
 }
 
 export default function Home() {
@@ -105,42 +139,54 @@ export default function Home() {
     }
   }
 
+  function updateTextPosition(textid: string, dataX: number, dataY: number) {
+    setTextElements((prev) =>
+      prev.map((text) =>
+        text.id == textid ? { ...text, x: dataX, y: dataY } : text
+      )
+    );
+  }
+
   return (
     <div>
       <div
         ref={imageContainerRef}
         onClick={handleImageClick}
-        className="relative inline-block"
+        className="relative w-[500px] h-[500px] border"
       >
         <Image
-          src={image || "/home.png"}
-          width={500}
-          height={500}
+          src="/home.png"
           alt="Picture"
+          fill
+          style={{ objectFit: "cover" }}
         />
 
-        {/* Render all text elements */}
+        {/* Draggable text */}
         {textElements.map((text) => (
-          <div
+          <motion.div
             key={text.id}
-            style={{
-              position: "absolute",
-              left: text.x,
-              top: text.y,
-              fontSize: text.fontSize,
-              color: text.color,
-              cursor: "pointer",
+            drag
+            dragConstraints={imageContainerRef} // restrict to container
+            initial={{ x: text.x, y: text.y }}
+            onDragEnd={(e, info) => {
+              // save updated position when drag ends
+              updateTextPosition(text.id, info.point.x, info.point.y);
             }}
-            onClick={(e) => handleTextClick(e, text.id)}
-            onDoubleClick={() => doubleClickHandler(text.id)}
+            onClick={(e) => handleTextClick(e, text.id)} // single click
+            onDoubleClick={() => doubleClickHandler(text.id)} // double click
+            className="absolute cursor-move select-none"
+            style={{
+              fontSize: text.fontSize + "px",
+              color: text.color,
+            }}
           >
             {isEditing && selectedTextId === text.id ? (
               <input
                 autoFocus
                 defaultValue={text.content}
-                onBlur={handleEditComplete}
-                onKeyDown={(e) => handleKeyDown(e, text.id)}
-                onChange={(e) => updateTextContent(text.id, e.target.value)}
+                onBlur={handleEditComplete} // finish editing on blur
+                onKeyDown={(e) => handleKeyDown(e, text.id)} // save on Enter, cancel on Esc
+                onChange={(e) => updateTextContent(text.id, e.target.value)} // live update
                 style={{
                   fontSize: text.fontSize,
                   color: text.color,
@@ -151,15 +197,13 @@ export default function Home() {
             ) : (
               text.content
             )}
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      <div className="flex items-center pt-10">
-        <h2>Select Image</h2>
-        <input type="file" name="MyImage" onChange={handleImageUpload} />
-        <Button onClick={() => setIsAddingText(true)}>Add text</Button>
-      </div>
+      <Button onClick={() => setIsAddingText(true)} className="mt-4">
+        Add text
+      </Button>
     </div>
   );
 }
