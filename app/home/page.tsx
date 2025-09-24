@@ -5,6 +5,8 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Draggable from "react-draggable";
 import { motion } from "framer-motion";
+import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 
 interface textElement {
   id: string;
@@ -147,8 +149,24 @@ export default function Home() {
     );
   }
 
+  const downloadImage = async () => {
+    if (!imageContainerRef.current) return;
+    try {
+      const dataUrl = await toPng(imageContainerRef.current, {
+        cacheBust: true,
+      });
+      const link = document.createElement("a");
+      link.download = "final-image.png";
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Download failed:", err);
+    }
+  };
+
   return (
     <div>
+      {/* Container with image + draggable text */}
       <div
         ref={imageContainerRef}
         onClick={handleImageClick}
@@ -200,7 +218,13 @@ export default function Home() {
           </motion.div>
         ))}
       </div>
-
+      {/* Download button */}
+      <button
+        onClick={downloadImage}
+        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        Download Image
+      </button>{" "}
       <Button onClick={() => setIsAddingText(true)} className="mt-4">
         Add text
       </Button>
