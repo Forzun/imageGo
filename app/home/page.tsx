@@ -5,7 +5,6 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Draggable from "react-draggable";
 import { motion } from "framer-motion";
-import html2canvas from "html2canvas";
 import { toPng } from "html-to-image";
 
 interface textElement {
@@ -54,7 +53,6 @@ export default function Home() {
   const [textElements, setTextElements] = useState<textElement[]>([]);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isAddingText, setIsAddingText] = useState(false);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +96,7 @@ export default function Home() {
       x: coords.x,
       y: coords.y,
       fontSize: 48,
-      color: "white", // Fix: "while" → "white"
+      color: "white",
     };
     setTextElements([...textElements, newText]);
     setIsAddingText(false);
@@ -166,7 +164,6 @@ export default function Home() {
 
   return (
     <div>
-      {/* Container with image + draggable text */}
       <div
         ref={imageContainerRef}
         onClick={handleImageClick}
