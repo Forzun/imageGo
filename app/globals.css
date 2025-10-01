@@ -178,3 +178,6 @@
   @apply max-w-[1400px] mx-auto w-full h-screen;
 }
 
+::-webkit-scrollbar {
+  display: none;
+}

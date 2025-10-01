@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import React, { useRef, useState } from "react";
+import Image from "next/image";
 
 interface textElement {
   id: string;
@@ -83,7 +83,7 @@ export default function Picture({
     setSelectedTextId(textid);
   }
 
-  function handleKeyDown(event: React.KeyboardEvent, textId: string) {
+  function handleKeyDown(event: React.KeyboardEvent) {
     if (event.key === "Enter") {
       handleEditComplete();
     }
@@ -105,61 +105,71 @@ export default function Picture({
     setIsEditing(true);
   }
 
+  function onImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0];
+      setImage(URL.createObjectURL(file));
+    }
+  }
+
   return (
-    <div className="container-wrapper border-1 border-x ">
-      <div>
-        <h1>Picture {id}</h1>
-        <div
-          ref={imageContainerRef}
-          onClick={hanldeImageClick}
-          className="relative w-[500px] h-[500px] border"
-        >
-          <Image
-            src="/home.png"
-            alt="Picture"
-            fill
-            style={{ objectFit: "cover" }}
-          />
-          {textElements.map((text) => (
-            <div
-              key={text.id}
-              onClick={(e) => handleTextClick(e, text.id)}
-              onDoubleClick={() => doubleClickHandler(text.id)}
-              className="absolute cursor-move select-none"
-              style={{
-                left: text.x + "px",
-                top: text.y + "px",
-                fontSize: text.fontSize + "px",
-                color: text.color,
-                textShadow: "2px 2px 4px rgba(0,0,0,0.7)",
-              }}
-            >
-              {isEditing && selectedTextId === text.id ? (
-                <input
-                  autoFocus
-                  defaultValue={text.content}
-                  onBlur={handleEditComplete}
-                  onKeyDown={(e) => handleKeyDown(e, text.id)}
-                  onChange={(e) => updateTextContent(text.id, e.target.value)}
-                  style={{
-                    fontSize: text.fontSize,
-                    color: text.color,
-                    background: "transparent",
-                    border: "1px solid white",
-                  }}
-                />
-              ) : (
-                text.content
-              )}
-            </div>
-          ))}
+    <div className="container-wrapper border-1 border-x">
+      <div className="flex justify-between items-center h-screen overflow-x-hidden">
+        <div className="min-w-4xl border ">
+          <h1>Picture {id}</h1>
+          <div
+            ref={imageContainerRef}
+            onClick={hanldeImageClick}
+            className="relative w-full h-[500px] border"
+          >
+            <Image
+              src={image ?? "/home.png"}
+              alt="Picture"
+              fill
+              className="object-cover w-full h-full"
+            />
+            {textElements.map((text) => (
+              <div
+                key={text.id}
+                onClick={(e) => handleTextClick(e, text.id)}
+                onDoubleClick={() => doubleClickHandler(text.id)}
+                className="absolute cursor-move select-none"
+                style={{
+                  left: text.x + "px",
+                  top: text.y + "px",
+                  fontSize: text.fontSize + "px",
+                  color: text.color,
+                  textShadow: "2px 2px 4px rgba(0,0,0,0.7)",
+                }}
+              >
+                {isEditing && selectedTextId === text.id ? (
+                  <input
+                    autoFocus
+                    defaultValue={text.content}
+                    onBlur={handleEditComplete}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    onChange={(e) => updateTextContent(text.id, e.target.value)}
+                    style={{
+                      fontSize: text.fontSize,
+                      color: text.color,
+                      background: "transparent",
+                      border: "1px solid white",
+                    }}
+                  />
+                ) : (
+                  text.content
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="flex gap-3 pt-10">
-        <Button>download image</Button>
-        <Button onClick={() => setIsAddingText(true)} variant="outline">
-          Add Text
-        </Button>
+        <div className="flex gap-3 pt-10">
+          <Button>download image</Button>
+          <Button onClick={() => setIsAddingText(true)} variant="outline">
+            Add Text
+          </Button>
+          <input type="file" name="myImage" onChange={onImageChange} />
+        </div>
       </div>
     </div>
   );
